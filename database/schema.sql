@@ -1,0 +1,23 @@
+/* SQLite schema for the recipe app */
+
+CREATE TABLE IF NOT EXISTS RECIPE (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    cooking_time_minutes INTEGER,
+    ingredients TEXT,
+    steps TEXT
+);
+
+CREATE TABLE IF NOT EXISTS TAG (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS RECIPE_TAG (
+    recipe_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    PRIMARY KEY (recipe_id, tag_id),
+    FOREIGN KEY (recipe_id) REFERENCES RECIPE(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES TAG(id) ON DELETE CASCADE
+);
