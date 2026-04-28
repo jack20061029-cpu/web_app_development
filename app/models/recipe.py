@@ -1,75 +1,88 @@
-# Recipe model with CRUD operations using SQLite
-import json
-from typing import List, Dict, Any
-from sqlite3 import Connection
+import sqlite3
+import os
+
+DATABASE = os.path.join('instance', 'database.db')
+
+def get_db_connection():
+    """建立資料庫連線並設定 row_factory"""
+    try:
+        conn = sqlite3.connect(DATABASE)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.Error as e:
+        print(f"資料庫連線錯誤: {e}")
+        return None
 
 class Recipe:
-    TABLE_NAME = "RECIPE"
-
-    def __init__(self, id: int = None, title: str = "", description: str = "", cooking_time_minutes: int = 0,
-                 ingredients: List[Dict[str, Any]] = None, steps: List[str] = None):
-        self.id = id
-        self.title = title
-        self.description = description
-        self.cooking_time_minutes = cooking_time_minutes
-        self.ingredients = ingredients or []
-        self.steps = steps or []
-
     @staticmethod
-    def create_table(conn: Connection):
-        conn.execute(
-            f"""
-            CREATE TABLE IF NOT EXISTS {Recipe.TABLE_NAME} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                description TEXT,
-                cooking_time_minutes INTEGER,
-                ingredients TEXT,
-                steps TEXT
-            );
-            """
-        )
-        conn.commit()
-
-    def save(self, conn: Connection):
-        cursor = conn.cursor()
-        if self.id is None:
+    def create(data):
+        """新增一筆食譜記錄"""
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
             cursor.execute(
-                f"INSERT INTO {Recipe.TABLE_NAME} (title, description, cooking_time_minutes, ingredients, steps) VALUES (?,?,?,?,?)",
-                (self.title, self.description, self.cooking_time_minutes,
-                 json.dumps(self.ingredients), json.dumps(self.steps))
+                'INSERT INTO RECIPE (title, description, cooking_time_minutes, ingredients, steps) VALUES (?, ?, ?, ?, ?)',
+                (data['title'], data.get('description'), data.get('cooking_time_minutes'), 
+                 data.get('ingredients'), data.get('steps'))
             )
-            self.id = cursor.lastrowid
-        else:
-            cursor.execute(
-                f"UPDATE {Recipe.TABLE_NAME} SET title = ?, description = ?, cooking_time_minutes = ?, ingredients = ?, steps = ? WHERE id = ?",
-                (self.title, self.description, self.cooking_time_minutes,
-                 json.dumps(self.ingredients), json.dumps(self.steps), self.id)
-            )
-        conn.commit()
-
-    @staticmethod
-    def get_all(conn: Connection) -> List['Recipe']:
-        rows = conn.execute(f"SELECT * FROM {Recipe.TABLE_NAME}").fetchall()
-        return [Recipe._from_row(row) for row in rows]
-
-    @staticmethod
-    def get_by_id(conn: Connection, recipe_id: int) -> 'Recipe':
-        row = conn.execute(f"SELECT * FROM {Recipe.TABLE_NAME} WHERE id = ?", (recipe_id,)).fetchone()
-        return Recipe._from_row(row) if row else None
-
-    @staticmethod
-    def _from_row(row):
-        return Recipe(
-            id=row[0],
-            title=row[1],
-            description=row[2],
-            cooking_time_minutes=row[3],
-            ingredients=json.loads(row[4] or "[]"),
-            steps=json.loads(row[5] or "[]")
-        )
-
-    def delete(self, conn: Connection):
-        if self.id:
-            conn.execute(f"DELETE FROM {Recipe.TABLE_NAME} WHERE id = ?", (self.id,))
             conn.commit()
+            new_id = cursor.lastrowid
+            conn.close()
+            return new_id
+        except Exception as e:
+            print(f"建立食譜失敗: {e}")
+            return None
+
+    @staticmethod
+    def get_all():
+        """取得所有食譜記錄"""
+        try:
+            conn = get_db_connection()
+            recipes = conn.execute('SELECT * FROM RECIPE').fetchall()
+            conn.close()
+            return recipes
+        except Exception as e:
+            print(f"取得食譜列表失敗: {e}")
+            return []
+
+    @staticmethod
+    def get_by_id(recipe_id):
+        """取得單筆食譜記錄"""
+        try:
+            conn = get_db_connection()
+            recipe = conn.execute('SELECT * FROM RECIPE WHERE id = ?', (recipe_id,)).fetchone()
+            conn.close()
+            return recipe
+        except Exception as e:
+            print(f"取得食譜詳情失敗: {e}")
+            return None
+
+    @staticmethod
+    def update(recipe_id, data):
+        """更新食譜記錄"""
+        try:
+            conn = get_db_connection()
+            conn.execute(
+                'UPDATE RECIPE SET title = ?, description = ?, cooking_time_minutes = ?, ingredients = ?, steps = ? WHERE id = ?',
+                (data['title'], data.get('description'), data.get('cooking_time_minutes'), 
+                 data.get('ingredients'), data.get('steps'), recipe_id)
+            )
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"更新食譜失敗: {e}")
+            return False
+
+    @staticmethod
+    def delete(recipe_id):
+        """刪除食譜記錄"""
+        try:
+            conn = get_db_connection()
+            conn.execute('DELETE FROM RECIPE WHERE id = ?', (recipe_id,))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"刪除食譜失敗: {e}")
+            return False

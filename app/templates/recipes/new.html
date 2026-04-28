@@ -1,8 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}新增食譜 - 食譜收藏夾{% endblock %}
+{% block title %}新增食譜{% endblock %}
 
 {% block content %}
-<h1>新增食譜</h1>
-<!-- 表單邏輯預留 -->
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 mb-4">＋ 新增食譜</h1>
+                
+                <form action="{{ url_for('recipe.create_recipe') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">食譜名稱 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="例如：紅燒牛肉">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">簡介</label>
+                        <textarea class="form-control" id="description" name="description" rows="2" placeholder="簡單描述一下這道菜..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cooking_time_minutes" class="form-label">烹飪時間 (分鐘)</label>
+                        <input type="number" class="form-control" id="cooking_time_minutes" name="cooking_time_minutes" min="0" placeholder="例如：30">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ingredients" class="form-label">材料</label>
+                        <textarea class="form-control" id="ingredients" name="ingredients" rows="5" placeholder="每行一項材料，例如：&#10;牛肉 500g&#10;洋蔥 1顆"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="steps" class="form-label">烹飪步驟</label>
+                        <textarea class="form-control" id="steps" name="steps" rows="8" placeholder="每行一個步驟，例如：&#10;1. 先將牛肉切塊焯水&#10;2. 爆香洋蔥..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('recipe.list_recipes') }}" class="btn btn-light">取消</a>
+                        <button type="submit" class="btn btn-primary">儲存食譜</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

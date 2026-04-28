@@ -1,8 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}食譜詳情 - 食譜收藏夾{% endblock %}
+{% block title %}{{ recipe.title }} - 食譜詳情{% endblock %}
 
 {% block content %}
-<h1>食譜詳情</h1>
-<!-- 詳細內容渲染邏輯預留 -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('recipe.list_recipes') }}">食譜列表</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ recipe.title }}</li>
+  </ol>
+</nav>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h1 class="card-title h2 mb-0">{{ recipe.title }}</h1>
+            <div>
+                <a href="{{ url_for('recipe.edit_recipe_form', id=recipe.id) }}" class="btn btn-sm btn-outline-secondary">編輯</a>
+                <form action="{{ url_for('recipe.delete_recipe', id=recipe.id) }}" method="POST" class="d-inline" onsubmit="return confirm('確定要刪除這份食譜嗎？');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">刪除</button>
+                </form>
+            </div>
+        </div>
+        
+        <p class="text-muted mb-4">⏱️ 預估時間：{{ recipe.cooking_time_minutes or '?' }} 分鐘</p>
+        
+        <div class="mb-4">
+            <h5>📖 簡介</h5>
+            <p class="lead">{{ recipe.description or '無簡介' }}</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="p-3 bg-light rounded">
+                    <h5>🛒 材料</h5>
+                    <div style="white-space: pre-line;">{{ recipe.ingredients or '尚未列出材料' }}</div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <h5>👨‍🍳 烹飪步驟</h5>
+                <div style="white-space: pre-line;">{{ recipe.steps or '尚未列出步驟' }}</div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
